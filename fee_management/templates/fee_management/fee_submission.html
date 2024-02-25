@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fee Submission</title>
+    <link rel="stylesheet" type="text/css" href="/static/fee_submission.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/bootstrap.min.css">
+    <script src="/static/jquery.min.js"></script>
+    <script src="/static/bootstrap.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
+</head>
+<body>
+  
+      
+    <div class="container-fluid full-width">
+        {% include 'sidebar.html' %}
+        
+    <div class="content col-sm-10">
+        {% include 'headers.html' %}
+        <div class="center-text">
+            <h3> चन्द्रिका प्रसाद महाविद्यालय</h3> 
+            <p>ग्राम व पोस्ट : - रामपुर बरहन (खानगी), वि.ख - दुदही (कुशीनगर)</p>
+        </div>
+        <div class="container student_sec">
+            <div class="section">
+                <p><b>Student Name:</b> {{ student.first_name }} {{ student.middle_name }} {{ student.last_name }}</p>
+                <p><b>Father Name:</b> {{ student.father_name }}</p>
+                <p><b>Admission Class:</b> BA {{ student.admission_batch }} Year</p>
+            </div>
+            <div class="section fee_sec">
+                <form method="post" id="fee-submission-form">
+                    {% csrf_token %}
+                    <div>
+                        <p> <b>Current Semester:</b> Semester {{ student.current_semester }}</p>
+                    </div>
+                    <div>
+                        <label for="payment_date"><b>Payment Date:</b></label>
+                        <input type="date" name="payment_date" id="payment_date">
+                    </div>
+                </div>
+        </div>
+        <div class="container student_sec">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>S N</th>
+                            <th>Particular</th>
+                            <th>Amount</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td>Registration Fee</td>
+                            <td><input type="number" step="0.01" name="registration_fee" id="registration_fee"></td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td>Tuition Fee</td>
+                            <td><input type="number" step="0.01" name="tuition_fee" id="tuition_fee"></td>
+                        </tr>
+                        <tr>
+                            <td>3</td>
+                            <td>Exam Fee</td>
+                            <td><input type="number" step="0.01" name="exam_fee" id="exam_fee"></td>
+                        </tr>
+                        <tr>
+                            <td>4</td>
+                            <td>Sports Fee</td>
+                            <td><input type="number" step="0.01" name="sports_fee" id="sports_fee"></td>
+                        </tr>
+                        <tr>
+                            <td>5</td>
+                            <td>Miscellaneous Fee</td>
+                            <td><input type="number" step="0.01" name="miscellaneous_fee" id="miscellaneous_fee"></td>
+                        </tr>
+                    </tbody>
+                </table>
+                <tr>
+                    <td>Late Fee</td>
+                    <td><input type="number" step="0.01" name="late_fee" id="late_fee"></td>
+                </tr>
+<br>
+                <tr>
+                    <td>Discount on Fee</td>
+                    <td><input type="number" step="0.01" name="discount_fee" id="discount_fee"></td>
+                </tr>
+                <br>
+                <div class="section">
+                    <button type="submit" class="details_btn">Submit</button>
+                </div>
+        </form>
+       
+       </div>
+      </div>
+      <footer>
+        <div class="col-sm-12">
+            <p style="text-align: right;">&copy; 2023 A2K Info Tech</p>
+        </div>
+    </footer>
+      </div> 
+    </body>
+</html>

@@ -1,0 +1,87 @@
+<!-- messagingapp/templates/messagingapp/send_messages.html -->
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            .popup {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    z-index: 999; /* Make sure it has a higher z-index than the rest of the content */
+}
+        </style>
+        <title>Send Messages</title>
+        <!-- <div class="popup">
+            <p>Messages sent successfully!</p>
+        </div> -->
+        <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog">
+                <!-- Modal content-->
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <p class="message_text">Messages sent successfully!</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" id="closeButton">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <!-- <script>
+            {% if messages_sent %}
+                alert("Messages sent successfully!");
+            {% endif %}
+        </script> -->
+        <title>Student List</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" type="text/css" href="/static/styles.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="/static/bootstrap.min.css">
+        <script src="/static/jquery.min.js"></script>
+        <script src="/static/bootstrap.min.js"></script>
+        <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
+    </head>
+<body>
+    
+    
+    <div class="container-fluid full-width">
+        {% include 'sidebar.html' %}
+        
+        <div class="content col-sm-10">
+            {% include 'headers.html' %}
+            <div class="content-header">
+                <h1>Send Messages</h1>
+                <p></p>
+              </div>
+            <form method="post" class="send_form">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" data-toggle="modal" data-target="#myModal" id="sendButton" class="save_btn">Send Messages</button>
+            </form>
+        </div>
+        <footer>
+            <div class="col-sm-12">
+                <p style="text-align: right;">© 2023 A2K Info Tech</p>
+            </div>
+        </footer>
+    </div>
+    <script>
+        // Get a reference to the close button
+        var closeButton = document.getElementById("closeButton");
+    
+        // Add an event listener to close the modal when the close button is clicked
+        closeButton.addEventListener("click", function() {
+            $('#myModal').modal('hide'); // Manually hide the modal
+        });
+    </script>
+    
+ 
+</body>
+</html>

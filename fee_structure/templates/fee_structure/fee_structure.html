@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <title>College Management Dashboard</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <link rel="stylesheet" href="/static/bootstrap.min.css">
+        <script src="/static/jquery.min.js"></script>
+        <script src="/static/bootstrap.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="/static/styles.css">
+        <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
+    </head>
+<body>
+    
+    
+      
+    <div class="container-fluid full-width">
+      {% include 'sidebar.html' %}
+      
+        <div class="content col-sm-10">
+          {% include 'headers.html' %}
+            <div class="content-header">
+              <h1>Fee Structure</h1>
+              <p></p>
+            </div>
+            <table class="fee-structure">
+              <thead>
+                <tr>
+                  <th>Semester</th>
+                  <th>Registration Fee</th>
+                  <th>Tuition Fee</th>
+                  <th>Exam Fee</th>
+                  <th>Sports Fee</th>
+                  <th>Miscellaneous Fee</th>
+                  <th>Semester Total Fee </th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+            <tbody>
+              {% for semester in semesters %}
+                <tr>
+                  <td>Semester {{ semester.semester_number }}</td>
+                  <td>{{ semester.registration_fee }}</td>
+                  <td>{{ semester.tuition_fee }}</td>
+                  <td>{{ semester.exam_fee }}</td>
+                  <td>{{ semester.sport_fee }}</td>
+                  <td>{{ semester.miscellaneous_fee }}</td>
+                  <td>{{ semester.semester_total }}</td>
+                  <td><a href="{% url 'update_semester_fee' semester.semester_number %}" class="update_btn"><i class="fa fa-edit"></i>Update</a></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+    </table>
+
+        </div>
+        <footer>
+          <div class="col-sm-12">
+              <p style="text-align: right;">&copy; 2023 A2K Info Tech</p>
+          </div>
+      </footer>   
+    </div>
+   
+</body>
+</html>

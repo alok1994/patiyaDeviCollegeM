@@ -1,0 +1,76 @@
+/* .charac_cert {
+    border: 1px solid #000;
+    padding: 20px;
+    width: 50%;
+} */
+p.lipik_class {
+    font-weight: bold;
+    margin-top: 30px;
+}
+p.principle_class {
+    text-align: right;
+    font-weight: bold;
+    margin-top: 30px;
+}
+.center-text {
+    text-align: center;
+    margin-top: 10px !important;
+}
+.inline-paragraphs {
+    display: inline-block;
+    vertical-align: top;
+    font-size: smaller;
+}
+.address_college {
+    text-align: center;
+    font-size: smaller;
+}
+.charac_cert_center_text {
+    border: 1px solid #000;
+    padding:6px 1px 4px 0px;
+    text-align: center;
+    width: 50%;
+    display: inline-block;
+    margin-top: 10px;
+    border-radius: 5px;
+    box-shadow: 2px 3px #25396f;
+}
+p.kramank-date {
+    margin-right: 10px; 
+}
+.static-box {
+    display: inline-block;
+    margin-left: 100px !important;
+} 
+
+.character_cer {
+    text-align: center;
+}
+p.date_input {
+    text-align: right;
+    padding-top: 10px;
+}
+p.principle_sign img {
+    width: 150px;
+    float: right;
+}
+.character_content {
+    letter-spacing: 0.5px;
+    line-height: 1.8;
+}
+.character_content input {
+    margin: 3px 0px;
+}
+a:hover{
+    color: #008080 !important;
+}
+
+
+@media print {
+    .static-box {
+        width: 100%;
+    }
+    .sidebar, button.print_btn, a.back_to_student, header, title {
+        display:none !important;
+     }
+}

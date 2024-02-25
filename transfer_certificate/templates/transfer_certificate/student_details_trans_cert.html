@@ -1,0 +1,109 @@
+<!-- fee_management/templates/fee_management/fee_detail.html -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Student List Details</title>
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/bootstrap.min.css">
+    <script src="/static/jquery.min.js"></script>
+    <script src="/static/bootstrap.min.js"></script>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            border: 1px solid #dddddd;
+            text-align: left;
+            padding: 8px;
+        }
+        th {
+            background-color: lightsteelblue;
+        }
+    </style>
+</head>
+<body>
+   
+
+    <div class="container-fluid full-width">
+        {% include 'sidebar.html' %}
+        
+        <div class="content col-sm-10">
+            {% include 'headers.html' %}
+            <div class="content-header">
+                <h1>TC Student List Details</h1>
+                <p></p>
+              </div>
+            <!-- Filter dropdown for selecting a class -->
+            <div class="col-sm-6">
+                <form method="get" class="transfer_cer_filter admission_filter">
+                    <div class="col-sm-8 year_admin">
+                    <label for="class_filter">Filter by Class:</label>
+                    <select id="class_filter" name="class_filter">
+                        <option value="">All</option>
+                        {% for choice in class_choices %}
+                        <option value="{{ choice }}" {% if choice == selected_class %}selected{% endif %}>{{ choice }}</option>
+                        {% endfor %}
+                    </select>
+                    </div>
+                    <div class="col-sm-4"><button type="submit" class="apply_filter">Filter</button></div>
+                </form>
+            </div>
+            
+            <br>
+            {% if class_students %}
+            <table class="student_list_tab">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Father Name</th>
+                        <th>Mother Name</th>
+                        <th>Actions</th>
+                        <!-- Add more table headers as needed -->
+                    </tr>
+                </thead>    
+                <tbody>
+                    {% for student in class_students %}
+                    <tr>
+                        <td>{{ student.first_name }} {{ student.middle_name }} {{ student.last_name }} </td>
+                        <td>{{ student.father_name }}</td>
+                        <td>{{ student.mother_name }}</td>
+                        <td>
+                            <a href="{% url 'view_transfer_certificate' student.id %}" class="details_btn">Generate Transfer Certificate</a>
+                        </td>                
+                        <!-- Add more student details here -->
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <p>No students found.</p>
+            {% endif %}
+        </div>
+        <div class="pagination">
+            <span class="step-links">
+                {% if class_students.has_previous %}
+                    <a href="?page=1">&laquo; first</a>
+                    <a href="?page={{ class_students.previous_page_number }}">previous</a>
+                {% endif %}
+                
+                <span class="current-page">{{ class_students.number }} / {{ class_students.paginator.num_pages }}</span>
+                
+                {% if class_students.has_next %}
+                    <a href="?page={{ class_students.next_page_number }}">next</a>
+                    <a href="?page={{ class_students.paginator.num_pages }}">last &raquo;</a>
+                {% endif %}
+            </span>
+        </div>
+        <footer>
+            <div class="col-sm-12">
+                <p style="text-align: right;">© 2023 A2K Info Tech</p>
+            </div>
+        </footer>
+    </div>
+   
+</body>
+</html>

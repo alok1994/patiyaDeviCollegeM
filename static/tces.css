@@ -1,0 +1,10 @@
+.trans_cer {
+    border: 1px solid #000;
+    padding: 20px;
+    width: 80%;
+    margin: 10px auto;
+}
+p.lipik_class {
+    width: 45%;
+    display: inline-block;
+}

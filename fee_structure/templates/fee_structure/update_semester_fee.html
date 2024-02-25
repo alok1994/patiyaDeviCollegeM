@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="/static/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/static/bootstrap.min.css">
+    <script src="/static/jquery.min.js"></script>
+    <script src="/static/bootstrap.min.js"></script>
+</head>
+<body>
+    
+    
+    <div class="container-fluid full-width">
+        {% include 'sidebar.html' %}
+        
+        <div class="content col-sm-10">
+            {% include 'headers.html' %}
+            <div class="content-header">
+                <h1>Update {{ semester }} Fee </h1>
+                <p></p>
+              </div>
+            <form method="post" class="admission_form">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="save_btn"><i class="fa fa-edit"></i> Save Changes</button>
+                <a href="{% url 'fee_structure' %}" class="btn btn-danger"> Cancel</a>
+            </form>
+        </div>
+    </div>
+    <script>
+        var onChange = function(evt) {
+        
+        var val1 = document.getElementById('id_tuition_fee').value;
+        var val2 = document.getElementById('id_exam_fee').value;
+        var val3 = document.getElementById('id_sport_fee').value;
+        var val4 = document.getElementById('id_miscellaneous_fee').value;
+        var val5 = document.getElementById('id_registration_fee').value;
+        var sum = Number(val1) + Number(val2) + Number(val3) + Number(val4) + Number(val5);
+        document.getElementById('id_semester_total').value = sum;
+        }
+        var id_tuition_fee = document.getElementById('id_tuition_fee');
+        var id_exam_fee = document.getElementById('id_exam_fee');
+        var id_sport_fee = document.getElementById('id_sport_fee');
+        var id_miscellaneous_fee = document.getElementById('id_miscellaneous_fee');
+        var id_registration_fee = document.getElementById('id_registration_fee');
+        id_tuition_fee.addEventListener('input', onChange, false);
+        id_exam_fee.addEventListener('input', onChange, false);
+        id_sport_fee.addEventListener('input', onChange, false);
+        id_miscellaneous_fee.addEventListener('input', onChange, false);
+        id_registration_fee.addEventListener('input', onChange, false);
+        $("#id_semester_total").attr("readonly", true)
+    </script>
+</body>
+</html>
