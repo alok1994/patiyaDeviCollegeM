@@ -160,7 +160,8 @@ def generate_receipt(request, fee_id):
 
     context = {
         'student': student,
-        'fee': fee
+        'fee': fee,
+        'remaining_due': fee.remaining_amount
     }
 
     return render(request, 'fee_management/receipt.html', context)
@@ -218,3 +219,21 @@ def send_message(request, student_id, remaining_amount):
         return HttpResponse("Error sending the message.")
 
 
+@login_required
+@allowed_users(allowed_roles=['admin'])
+def fee_dashboard(request):
+    # Calculate per day, per week, per month, and yearly fee collections
+    # Example data (replace it with your actual data)
+    per_day_data = {'Monday': 100, 'Tuesday': 150, 'Wednesday': 200, 'Thursday': 180, 'Friday': 120}
+    per_week_data = {'Week 1': 500, 'Week 2': 600, 'Week 3': 700, 'Week 4': 800}
+    per_month_data = {'January': 2000, 'February': 2500, 'March': 1800, 'April': 2200}
+    yearly_data = {'2022': 10000, '2023': 12000, '2024': 15000}
+
+    context = {
+        'per_day_data': per_day_data,
+        'per_week_data': per_week_data,
+        'per_month_data': per_month_data,
+        'yearly_data': yearly_data,
+    }
+
+    return render(request, 'fee_management/fee_dashboard.html', context)
