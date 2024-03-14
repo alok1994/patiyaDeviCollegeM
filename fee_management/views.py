@@ -16,6 +16,14 @@ from django.http import HttpResponse
 import threading
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from loginapp.decorators import allowed_users
+from django.utils import timezone
+from django.http import JsonResponse
+from django.core.serializers import serialize
+from decimal import Decimal
+import json
+from django.db.models.functions import TruncMonth
+from django.db.models.functions import TruncYear
+from datetime import timedelta
 
 Tfrom  = '+13348304110'
 
@@ -48,6 +56,109 @@ def fee_detail(request):
     return render(request, 'fee_management/fee_detail.html', {'class_students': class_students, 'semester_choices': semester_choices, 'selected_class': selected_class,})
 
 
+# @login_required
+# @allowed_users(allowed_roles=['admin'])
+# def fee_submission(request, student_id):
+#     student = get_object_or_404(AdmissionForm, id=student_id)
+
+#     def send_message_background(total_paid_amount, current_semester, remaining_amount, ):
+#         # Construct the message
+#         message = f"प्रिय छात्र/छात्रा {student.first_name}, यह संदेश चन्द्रिका प्रसाद महाविद्यालय से है | आपने {total_paid_amount} रुपये Semester {current_semester } के लिए भुगतान किया है. {remaining_amount } रुपये शेष है |. कृपया जल्द से जल्द भुगतान करें।"
+
+#         # Use Twilio to send the message
+#         client = Client(settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+
+#         # Sanitize the phone number (remove non-numeric characters)
+#         to_number = ''.join(filter(str.isdigit, student.mobile_number))
+
+#             # Format the phone number with the country code (e.g., for India)
+#         formatted_to_number = '+91 ' + to_number
+
+#         try:
+#             message = client.messages.create(
+#                 to=formatted_to_number,
+#                 from_= Tfrom,  # Replace with your Twilio number
+#                 body=message
+#             )
+#         except Exception as e:
+#             # Handle the error, e.g., log it for debugging
+#             print(f"Twilio Error: {str(e)}")
+
+#     if request.method == 'POST':
+#         fee_form = FeeForm(request.POST)
+#         if fee_form.is_valid():
+#             fee = fee_form.save(commit=False)
+#             fee.student = student
+
+#             timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+#             random_part = get_random_string(length=6, allowed_chars='1234567890')
+#             fee.receipt_number = f"R{timestamp}{random_part}"
+
+#             fee.registration_fee = fee.registration_fee or 0
+#             fee.tuition_fee = fee.tuition_fee or 0
+#             fee.exam_fee = fee.exam_fee or 0
+#             fee.sports_fee = fee.sports_fee or 0
+#             fee.miscellaneous_fee = fee.miscellaneous_fee or 0
+#             fee.late_fee = fee.late_fee or 0
+#             fee.discount_fee = fee.discount_fee or 0
+
+#             total_paid_amount = (
+#                 fee.registration_fee + fee.tuition_fee + fee.exam_fee +
+#                 fee.sports_fee + fee.miscellaneous_fee - fee.discount_fee + fee.late_fee
+#             )
+#             fee.total_paid_amount = total_paid_amount
+
+#             fee.semester = student.current_semester
+
+#             fee.total_amount_in_words = num2words(total_paid_amount, lang='en_IN').title()
+
+#             # Query the database to get the fee history for the selected student
+#             fee_history = Fee.objects.filter(student=student).order_by('-payment_date')
+
+#             # Get the student's current semester from the AdmissionForm
+#             current_semester = student.current_semester
+
+#             try:
+#                 semester_fee = Semester.objects.get(semester_number=student.current_semester)
+#                 total_semester_fee = semester_fee.semester_total
+#                 fee.total_semester_fee = total_semester_fee
+#             except Semester.DoesNotExist:
+#                 total_semester_fee = 0
+
+#             # Calculate the total paid amount for the student
+#             total_paid_amount_history = {}  # Dictionary to store total paid amounts per semester
+
+#             # Iterate through fee history to calculate total paid amounts per semester
+#             for history_entry in fee_history:
+#                 semester_paid = history_entry.semester
+#                 if semester_paid not in total_paid_amount_history:
+#                     total_paid_amount_history[semester_paid] = 0
+#                 total_paid_amount_history[semester_paid] += history_entry.total_paid_amount
+
+#             # Handle the case where current semester doesn't have a paid amount entry
+#             if current_semester not in total_paid_amount_history:
+#                 total_paid_amount_history[current_semester] = 0
+
+#             # Calculate the remaining amount for the current semester
+#             remaining_amount = total_semester_fee - total_paid_amount - total_paid_amount_history[current_semester]
+#             fee.remaining_amount = remaining_amount
+
+#             # Create a thread to send the message in the background
+#             message_thread = threading.Thread(target=send_message_background(total_paid_amount, current_semester,remaining_amount))
+#             message_thread.start()
+
+#             fee.save()
+
+#             return redirect('generate_receipt', fee_id=fee.id)
+#         else:
+#             print(fee_form.errors)
+
+#     else:
+#         fee_form = FeeForm() 
+
+#     return render(request, 'fee_management/fee_submission.html', {'fee_form': fee_form, 'student': student})
+from django.db import transaction
+
 @login_required
 @allowed_users(allowed_roles=['admin'])
 def fee_submission(request, student_id):
@@ -63,7 +174,7 @@ def fee_submission(request, student_id):
         # Sanitize the phone number (remove non-numeric characters)
         to_number = ''.join(filter(str.isdigit, student.mobile_number))
 
-            # Format the phone number with the country code (e.g., for India)
+        # Format the phone number with the country code (e.g., for India)
         formatted_to_number = '+91 ' + to_number
 
         try:
@@ -79,69 +190,85 @@ def fee_submission(request, student_id):
     if request.method == 'POST':
         fee_form = FeeForm(request.POST)
         if fee_form.is_valid():
-            fee = fee_form.save(commit=False)
-            fee.student = student
+            with transaction.atomic():
+                fee = fee_form.save(commit=False)
+                fee.student = student
 
-            timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
-            random_part = get_random_string(length=6, allowed_chars='1234567890')
-            fee.receipt_number = f"R{timestamp}{random_part}"
+                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                random_part = get_random_string(length=6, allowed_chars='1234567890')
+                fee.receipt_number = f"R{timestamp}{random_part}"
 
-            fee.registration_fee = fee.registration_fee or 0
-            fee.tuition_fee = fee.tuition_fee or 0
-            fee.exam_fee = fee.exam_fee or 0
-            fee.sports_fee = fee.sports_fee or 0
-            fee.miscellaneous_fee = fee.miscellaneous_fee or 0
-            fee.late_fee = fee.late_fee or 0
-            fee.discount_fee = fee.discount_fee or 0
+                fee.registration_fee = fee.registration_fee or 0
+                fee.tuition_fee = fee.tuition_fee or 0
+                fee.exam_fee = fee.exam_fee or 0
+                fee.sports_fee = fee.sports_fee or 0
+                fee.miscellaneous_fee = fee.miscellaneous_fee or 0
+                fee.late_fee = fee.late_fee or 0
+                fee.discount_fee = fee.discount_fee or 0
 
-            total_paid_amount = (
-                fee.registration_fee + fee.tuition_fee + fee.exam_fee +
-                fee.sports_fee + fee.miscellaneous_fee - fee.discount_fee + fee.late_fee
-            )
-            fee.total_paid_amount = total_paid_amount
+                # Calculate total paid amount including advance payment
+                total_paid_amount = (
+                    fee.registration_fee + fee.tuition_fee + fee.exam_fee +
+                    fee.sports_fee + fee.miscellaneous_fee - fee.discount_fee + fee.late_fee
+                )
+                fee.total_paid_amount = total_paid_amount
 
-            fee.semester = student.current_semester
+                fee.semester = student.current_semester
 
-            fee.total_amount_in_words = num2words(total_paid_amount, lang='en_IN').title()
+                fee.total_amount_in_words = num2words(total_paid_amount, lang='en_IN').title()
 
-            # Query the database to get the fee history for the selected student
-            fee_history = Fee.objects.filter(student=student).order_by('-payment_date')
+                # Query the database to get the fee history for the selected student
+                fee_history = Fee.objects.filter(student=student).order_by('-payment_date')
 
-            # Get the student's current semester from the AdmissionForm
-            current_semester = student.current_semester
+                # Get the student's current semester from the AdmissionForm
+                current_semester = student.current_semester
 
-            try:
-                semester_fee = Semester.objects.get(semester_number=student.current_semester)
-                total_semester_fee = semester_fee.semester_total
-                fee.total_semester_fee = total_semester_fee
-            except Semester.DoesNotExist:
-                total_semester_fee = 0
+                try:
+                    semester_fee = Semester.objects.get(semester_number=student.current_semester)
+                    total_semester_fee = semester_fee.semester_total
+                    fee.total_semester_fee = total_semester_fee
+                except Semester.DoesNotExist:
+                    total_semester_fee = 0
 
-            # Calculate the total paid amount for the student
-            total_paid_amount_history = {}  # Dictionary to store total paid amounts per semester
+                # Calculate the total paid amount for the student
+                total_paid_amount_history = {}  # Dictionary to store total paid amounts per semester
 
-            # Iterate through fee history to calculate total paid amounts per semester
-            for history_entry in fee_history:
-                semester_paid = history_entry.semester
-                if semester_paid not in total_paid_amount_history:
-                    total_paid_amount_history[semester_paid] = 0
-                total_paid_amount_history[semester_paid] += history_entry.total_paid_amount
+                # Iterate through fee history to calculate total paid amounts per semester
+                for history_entry in fee_history:
+                    semester_paid = history_entry.semester
+                    if semester_paid not in total_paid_amount_history:
+                        total_paid_amount_history[semester_paid] = 0
+                    total_paid_amount_history[semester_paid] += history_entry.total_paid_amount
 
-            # Handle the case where current semester doesn't have a paid amount entry
-            if current_semester not in total_paid_amount_history:
-                total_paid_amount_history[current_semester] = 0
+                # Handle the case where current semester doesn't have a paid amount entry
+                if current_semester not in total_paid_amount_history:
+                     total_paid_amount_history[current_semester] = 0
 
-            # Calculate the remaining amount for the current semester
-            remaining_amount = total_semester_fee - total_paid_amount - total_paid_amount_history[current_semester]
-            fee.remaining_amount = remaining_amount
+                # # Calculate the remaining amount for the current semester
+                remaining_amount = total_semester_fee - total_paid_amount - total_paid_amount_history[current_semester]
+                 #fee.remaining_amount = remaining_amount
 
-            # Create a thread to send the message in the background
-            message_thread = threading.Thread(target=send_message_background(total_paid_amount, current_semester,remaining_amount))
-            message_thread.start()
+                # # Update the advance payment field
+                # advance_payment = fee_form.cleaned_data.get('advance_payment', 0)
+                # fee.advance_payment = advance_payment
+                
+                if remaining_amount < 0:
+                # Convert negative remaining amount to positive and assign it to advance_payment
+                    advance_payment = abs(remaining_amount)
+                    remaining_amount = 0  
+                else:
+                    advance_payment = 0
 
-            fee.save()
+                fee.remaining_amount = remaining_amount
+                fee.advance_payment = advance_payment
 
-            return redirect('generate_receipt', fee_id=fee.id)
+                # Create a thread to send the message in the background
+                message_thread = threading.Thread(target=send_message_background(total_paid_amount, current_semester, remaining_amount))
+                message_thread.start()
+
+                fee.save()
+
+                return redirect('generate_receipt', fee_id=fee.id)
         else:
             print(fee_form.errors)
 
@@ -161,7 +288,8 @@ def generate_receipt(request, fee_id):
     context = {
         'student': student,
         'fee': fee,
-        'remaining_due': fee.remaining_amount
+        'remaining_due': fee.remaining_amount,
+        'advance_payment': fee.advance_payment
     }
 
     return render(request, 'fee_management/receipt.html', context)
@@ -222,18 +350,88 @@ def send_message(request, student_id, remaining_amount):
 @login_required
 @allowed_users(allowed_roles=['admin'])
 def fee_dashboard(request):
-    # Calculate per day, per week, per month, and yearly fee collections
-    # Example data (replace it with your actual data)
-    per_day_data = {'Monday': 100, 'Tuesday': 150, 'Wednesday': 200, 'Thursday': 180, 'Friday': 120}
-    per_week_data = {'Week 1': 500, 'Week 2': 600, 'Week 3': 700, 'Week 4': 800}
-    per_month_data = {'January': 2000, 'February': 2500, 'March': 1800, 'April': 2200}
-    yearly_data = {'2022': 10000, '2023': 12000, '2024': 15000}
+    today = timezone.now().date()
 
-    context = {
-        'per_day_data': per_day_data,
-        'per_week_data': per_week_data,
-        'per_month_data': per_month_data,
-        'yearly_data': yearly_data,
+    # Calculate the start and end of the current week
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
+
+    # Calculate the start and end of the current month
+    start_of_month = today.replace(day=1)
+    end_of_month = start_of_month.replace(day=28) + timedelta(days=4)
+    end_of_month = end_of_month - timedelta(days=end_of_month.day)
+
+    # Calculate the start and end of the current year
+    start_of_year = today.replace(month=1, day=1)
+    end_of_year = today.replace(month=12, day=31)
+
+    # Query the database to get the relevant fee data
+    today_fee_collection = Fee.objects.filter(payment_date=today).aggregate(Sum('total_paid_amount'))['total_paid_amount__sum'] or 0
+    weekly_fee_collection = Fee.objects.filter(payment_date__range=[start_of_week, end_of_week]).aggregate(Sum('total_paid_amount'))['total_paid_amount__sum'] or 0
+    monthly_fee_collection = Fee.objects.filter(payment_date__range=[start_of_month, end_of_month]).aggregate(Sum('total_paid_amount'))['total_paid_amount__sum'] or 0
+    yearly_fee_collection = Fee.objects.filter(payment_date__range=[start_of_year, end_of_year]).aggregate(Sum('total_paid_amount'))['total_paid_amount__sum'] or 0
+
+    return render(request, 'fee_management/fee_dashboard.html', {
+        'today_fee_collection': today_fee_collection,
+        'weekly_fee_collection': weekly_fee_collection,
+        'monthly_fee_collection': monthly_fee_collection,
+        'yearly_fee_collection': yearly_fee_collection,
+    })
+
+@login_required
+@allowed_users(allowed_roles=['admin'])
+def fee_dashboard_api(request):
+    today = timezone.now().date()
+    start_of_week = today - timedelta(days=today.weekday())
+    end_of_week = start_of_week + timedelta(days=6)
+    start_of_month = today.replace(day=1)
+    end_of_month = start_of_month.replace(day=28) + timedelta(days=4)
+    end_of_month = end_of_month - timedelta(days=end_of_month.day)
+    start_of_year = today.replace(month=1, day=1)
+    end_of_year = today.replace(month=12, day=31)
+
+    today_fee_entries = Fee.objects.filter(payment_date=today)
+    weekly_fee_entries = Fee.objects.filter(payment_date__range=[start_of_week, end_of_week])
+    
+    # Aggregate monthly data for all months
+    monthly_fee_entries = Fee.objects \
+        .annotate(month=TruncMonth('payment_date')) \
+        .values('month') \
+        .annotate(total_amount=Sum('total_paid_amount')) \
+        .order_by('month')
+
+    # Aggregate yearly data for all years
+    yearly_fee_entries = Fee.objects \
+        .annotate(year=TruncYear('payment_date')) \
+        .values('year') \
+        .annotate(total_amount=Sum('total_paid_amount')) \
+        .order_by('year')
+    
+    yearly_fee_collection = dict((entry['year'].strftime('%Y'), float(entry['total_amount'])) for entry in yearly_fee_entries)
+
+    # Convert Decimal values to float before serializing
+    today_fee_entries_json = serialize('json', today_fee_entries, use_natural_primary_keys=True)
+    
+    # Convert Decimal values to float for aggregate values
+    #yearly_fee_collection = float(yearly_fee_collection)
+
+    # Aggregate weekly data
+    weekly_data = {}
+    for entry in weekly_fee_entries:
+        payment_date = entry.payment_date.strftime('%A')  # Get the day of the week
+        if payment_date not in weekly_data:
+            weekly_data[payment_date] = 0
+        weekly_data[payment_date] += entry.total_paid_amount
+
+
+
+    response_data = {
+        'today_fee_entries': json.loads(today_fee_entries_json),
+        'weekly_fee_entries': weekly_data,
+        'monthly_fee_collection': dict((entry['month'].strftime('%B'), entry['total_amount']) for entry in monthly_fee_entries),
+        'yearly_fee_collection': yearly_fee_collection,
     }
 
-    return render(request, 'fee_management/fee_dashboard.html', context)
+    return JsonResponse(response_data)
+
+

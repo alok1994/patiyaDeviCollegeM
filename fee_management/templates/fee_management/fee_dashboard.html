@@ -12,107 +12,148 @@
     <link href="https://fonts.googleapis.com/css2?family=Nunito&display=swap" rel="stylesheet">
 </head>
 <body>
-  
-      
+
     <div class="container-fluid full-width">
         {% include 'sidebar.html' %}
-        
-    <div class="content col-sm-10">
-        {% include 'headers.html' %}
-        <div class="center-text">
-            <h3> चन्द्रिका प्रसाद महाविद्यालय</h3> 
-            <p>ग्राम व पोस्ट : - रामपुर बरहन (खानगी), वि.ख - दुदही (कुशीनगर)</p>
-        </div>
-        <div class="container student_sec">
-            <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-            <div>
-                <canvas id="dailyChart" width="400" height="400"></canvas>
-                <p>Today's Fee Collection: ₹{{ today_fee_collection }}</p>
+        <div class="content col-sm-10">
+            {% include 'headers.html' %}
+            <div class="center-text">
+                <h3> चन्द्रिका प्रसाद महाविद्यालय</h3> 
+                <p>ग्राम व पोस्ट : - रामपुर बरहन (खानगी), वि.ख - दुदही (कुशीनगर)</p>
             </div>
+            <div class="container student_sec">
+                <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+                <div>
+                    <canvas id="dailyChart" width="500" height="200"></canvas>
+                    <p>Today's Fee Collection: ₹{{ today_fee_collection }}</p>
+                </div>
 
-            <div>
-                <canvas id="weeklyChart" width="400" height="400"></canvas>
-                <p>Weekly Fee Collection: ₹{{ weekly_fee_collection }}</p>
+                <div>
+                    <canvas id="weeklyChart" width="500" height="200"></canvas>
+                    <p>Weekly Fee Collection: ₹{{ weekly_fee_collection }}</p>
+                </div>
+
+                <div>
+                    <canvas id="monthlyChart" width="500" height="200"></canvas>
+                    <p>Monthly Fee Collection: ₹{{ monthly_fee_collection }}</p>
+                </div>
+
+                <div>
+                    <canvas id="yearlyChart" width="500" height="200"></canvas>
+                    <p>Current Year Fee Collection: ₹{{ yearly_fee_collection }}</p>
+                </div>
+
+                <!-- Existing JavaScript code in your fee_dashboard.html template -->
+
+                <script>
+                    // Function to fetch fee data from the API endpoint
+                    function fetchFeeData(apiEndpoint) {
+                        return fetch(apiEndpoint)
+                            .then(response => response.json())
+                            .catch(error => console.error('Error fetching fee data:', error));
+                    }
+
+                    // Function to update and create pie chart
+                    function updateAndCreatePieChart(canvasId, chartData) {
+                        var ctx = document.getElementById(canvasId).getContext('2d');
+                        new Chart(ctx, {
+                            type: 'pie',
+                            data: chartData,
+                        });
+                    }
+
+                    // Function to update and create doughnut chart
+                    function updateAndCreateDoughnutChart(canvasId, chartData) {
+                        var ctx = document.getElementById(canvasId).getContext('2d');
+                        new Chart(ctx, {
+                            type: 'doughnut',
+                            data: chartData,
+                        });
+                    }
+
+                    // Function to update and create bar chart with multiple colors
+                    function updateAndCreateBarChart(canvasId, chartData, colors) {
+                        var ctx = document.getElementById(canvasId).getContext('2d');
+                        new Chart(ctx, {
+                            type: 'bar',
+                            data: {
+                                labels: chartData.labels,
+                                datasets: [{
+                                    data: chartData.datasets[0].data,
+                                    backgroundColor: colors, // Specify an array of colors for each bar
+                                }],
+                            },
+                        });
+                    }
+
+                    // API endpoint for fee data (replace with your actual API endpoint)
+                    var feeApiEndpoint = '/fee_dashboard/api/';
+
+                    // Fetch fee data and update charts
+                    fetchFeeData(feeApiEndpoint)
+                        .then(function (data) {
+                            console.log('Data received:', data);
+
+                            // Check if data has the expected structure
+                            if (data.today_fee_entries && data.weekly_fee_entries && data.monthly_fee_collection) {
+                                // Process today's data
+                                var todayData = {
+                                    labels: data.today_fee_entries.map(entry => entry.fields.receipt_number),
+                                    datasets: [{
+                                        data: data.today_fee_entries.map(entry => entry.fields.total_paid_amount),
+                                    }],
+                                    receiptNumbers: data.today_fee_entries.map(entry => entry.fields.receipt_number),
+                                };
+
+                                updateAndCreatePieChart('dailyChart', todayData);
+
+                                // Process weekly data
+                                var weeklyChartData = {
+                                    labels: Object.keys(data.weekly_fee_entries),
+                                    datasets: [{
+                                        data: Object.values(data.weekly_fee_entries),
+                                    }],
+                                };
+
+                                // Specify an array of colors for each bar (customize as needed)
+                                var barColors = ['#FF5733', '#33FF57', '#5733FF', 'pink', '#33FF57', '#5733FF', 'red'];
+
+                                updateAndCreateBarChart('weeklyChart', weeklyChartData, barColors);
+
+                                var monthlyChartData = {
+                                    labels: Object.keys(data.monthly_fee_collection),
+                                    datasets: [{
+                                        data: Object.values(data.monthly_fee_collection),
+                                    }],
+                                };
+
+                                // Specify an array of colors for each segment (customize as needed)
+                                var doughnutColors = ['#FF5733', '#33FF57', '#5733FF', 'pink', '#33FF57', '#5733FF', 'red'];
+
+                                updateAndCreateDoughnutChart('monthlyChart', monthlyChartData, doughnutColors);
+
+                                
+                                var yearlyChartData = {
+                                    labels: Object.keys(data.yearly_fee_collection),
+                                    datasets: [{
+                                        data: Object.values(data.yearly_fee_collection),
+                                    }],
+                                };
+
+                                // Specify an array of colors for each bar (customize as needed)
+                                var barColors = ['#FF5733', '#33FF57', '#5733FF', 'pink', '#33FF57', '#5733FF', 'red'];
+
+                                updateAndCreateBarChart('yearlyChart', yearlyChartData, barColors);
+
+                            } else {
+                                console.error('Invalid data format:', data);
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+                </script>
+
             </div>
-
-            <div>
-                <canvas id="monthlyChart" width="400" height="400"></canvas>
-                <p>Monthly Fee Collection: ₹{{ monthly_fee_collection }}</p>
-            </div>
-
-            <div>
-                <canvas id="yearlyChart" width="400" height="400"></canvas>
-                <p>Current Year Fee Collection: ₹{{ yearly_fee_collection }}</p>
-            </div>
-            <script>
-                // Sample data (replace it with your actual data)
-                var dailyData = {
-                    labels: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
-                    datasets: [{
-                        data: [100, 150, 120, 200, 180],
-                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#FF9800'],
-                    }],
-                };
-
-                var weeklyData = {
-                    labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
-                    datasets: [{
-                        data: [300, 400, 350, 450],
-                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4CAF50'],
-                    }],
-                };
-
-                var monthlyData = {
-                    labels: ['January', 'February', 'March', 'April', 'May', 'June'],
-                    datasets: [{
-                        data: [1200, 1500, 1300, 1800, 2000, 1700],
-                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4CAF50', '#FF9800', '#9C27B0'],
-                    }],
-                };
-
-                var yearlyData = {
-                    labels: ['2020', '2021', '2022', '2023'],
-                    datasets: [{
-                        data: [5000, 6000, 5500, 7000],
-                        backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56', '#4CAF50'],
-                    }],
-                };
-
-                // Function to create a pie chart
-                function createPieChart(canvasId, chartData) {
-                    var ctx = document.getElementById(canvasId).getContext('2d');
-                    new Chart(ctx, {
-                        type: 'pie',
-                        data: chartData,
-                    });
-                }
-
-                // Function to create a doughnut chart
-                function createDoughnutChart(canvasId, chartData) {
-                    var ctx = document.getElementById(canvasId).getContext('2d');
-                    new Chart(ctx, {
-                        type: 'doughnut',
-                        data: chartData,
-                    });
-                }
-
-                // Function to create a bar chart
-                function createBarChart(canvasId, chartData) {
-                    var ctx = document.getElementById(canvasId).getContext('2d');
-                    new Chart(ctx, {
-                        type: 'bar',
-                        data: chartData,
-                    });
-                }
-
-                // Call functions to create charts
-                createPieChart('dailyChart', dailyData);
-                createDoughnutChart('weeklyChart', weeklyData);
-                createBarChart('monthlyChart', monthlyData);
-                createDoughnutChart('yearlyChart', yearlyData);
-            </script>
         </div>
     </div>
-</div>
 </body>
 </html>
