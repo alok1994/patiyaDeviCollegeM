@@ -23,26 +23,36 @@
             </div>
             <div class="container student_sec">
                 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-                <div>
-                    <canvas id="dailyChart" width="500" height="200"></canvas>
-                    <p>Today's Fee Collection: ₹{{ today_fee_collection }}</p>
+                <div class="container-fluid">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <canvas id="dailyChart" height="486" width="692" style="display: block; box-sizing: border-box; height: 389px; width: 554px; border: none; outline: none;"></canvas>
+                            <div style="margin-top: 10px;">
+                                <p style="text-align: center;">Today's Fee Collection: ₹{{ today_fee_collection }}</p>
+                            </div>                        
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="weeklyChart" height="675" width="692" style="height: 700px; width: 554px; border: none; outline: none; display: block; box-sizing: border-box;"></canvas>
+                            <div style="margin-top: 10px;">
+                                <p style="text-align: center;">Weekly Fee Collection: ₹{{ weekly_fee_collection }}</p>
+                            </div>   
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <canvas id="monthlyChart" height="675" width="675" style="display: block; box-sizing: border-box; height: 540px; width: 540px; border: none; outline: none;"></canvas>
+                            <div style="margin-top: 10px;">
+                                <p style="text-align: center;">Monthly Fee Collection: ₹{{ monthly_fee_collection }}</p>
+                            </div>  
+                        </div>
+                        <div class="col-md-6">
+                            <canvas id="yearlyChart" height="675" width="692" style="height: 700px; width: 554px; border: none; outline: none; display: block; box-sizing: border-box;"></canvas>
+                            <div style="margin-top: 10px;">
+                                <p style="text-align: center;">Yearly Fee Collection: ₹{{ yearly_fee_collection }}</p>
+                            </div>  
+                        </div>
+                    </div>
                 </div>
-
-                <div>
-                    <canvas id="weeklyChart" width="500" height="200"></canvas>
-                    <p>Weekly Fee Collection: ₹{{ weekly_fee_collection }}</p>
-                </div>
-
-                <div>
-                    <canvas id="monthlyChart" width="500" height="200"></canvas>
-                    <p>Monthly Fee Collection: ₹{{ monthly_fee_collection }}</p>
-                </div>
-
-                <div>
-                    <canvas id="yearlyChart" width="500" height="200"></canvas>
-                    <p>Current Year Fee Collection: ₹{{ yearly_fee_collection }}</p>
-                </div>
-
                 <!-- Existing JavaScript code in your fee_dashboard.html template -->
 
                 <script>
